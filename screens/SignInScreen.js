@@ -8,34 +8,51 @@ import {
 } from "react-native";
 
 import Colors from "../constants/Colors";
-
+import { MaterialIcons } from "@expo/vector-icons";
 const SignInScreen = (props) => {
   const [enteredEmail, setEnteredEmail] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
 
   return (
     <View style={styles.screen}>
-      <Text style={styles.greetingsText}>TODO powitanie</Text>
-      <View style={styles.fieldsContainer}>
+      <View style={styles.signUpButton}>
+        <Text>Don't have account yet?</Text>
+        <TouchableOpacity
+          style={{ marginLeft: 10 }}
+          onPress={() => props.navigation.navigate("SignUp")}>
+          <Text style={styles.signUpText}>Sign up</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.field}>
+        <MaterialIcons name='mail-outline' size={30} color={Colors.gray} />
         <TextInput
-          style={styles.field}
-          value={enteredEmail}
-          placeholder="email"
-          onChangeText={(text) => setEnteredEmail(text)}
-        />
-        <TextInput
-          style={styles.field}
-          value={enteredPassword}
-          placeholder="password"
-          secureTextEntry={true}
-          onChangeText={(text) => setEnteredPassword(text)}
+          style={styles.textInput}
+          placeholder='Email'
+          placeholderTextColor={Colors.gray}
         />
       </View>
-      <TouchableOpacity>
-        <Text>LOG IN</Text>
+      <View style={styles.field}>
+        <MaterialIcons name='lock-outline' size={30} color={Colors.gray} />
+        <TextInput
+          style={styles.textInput}
+          placeholder='Password'
+          placeholderTextColor={Colors.gray}
+          secureTextEntry={true}
+        />
+      </View>
+
+      <TouchableOpacity
+        style={styles.forgotPasswordButton}
+        onPress={() => props.navigation.navigate("ForgotPassword")}>
+        <Text style={styles.forgotPasswordButtonText}>
+          I forgot my password
+        </Text>
       </TouchableOpacity>
-      <TouchableOpacity>
-        <Text>I forgot my password</Text>
+
+      <TouchableOpacity style={styles.logInButton}>
+        <View>
+          <Text style={styles.logInText}>Log in</Text>
+        </View>
       </TouchableOpacity>
     </View>
   );
@@ -44,21 +61,48 @@ const SignInScreen = (props) => {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
-    padding: 20,
+    padding: 35,
+    marginTop: 50,
     alignItems: "center",
-    backgroundColor: "#d4d4d4",
+    justifyContent: "center",
   },
-  greetingsText: {
-    fontSize: 24,
-    marginVertical: 40,
+  signUpButton: {
+    alignSelf: "flex-end",
+    flexDirection: "row",
+    alignItems: "baseline",
+    marginBottom: 15,
+  },
+  signUpText: {
+    fontSize: 27,
+    fontWeight: "bold",
+    color: Colors.primary,
   },
   field: {
-    fontSize: 18,
-    marginVertical: 10,
-    backgroundColor: "#e4e4e4",
-    height: 36,
-    borderBottomColor: Colors.accent_1,
+    marginHorizontal: 30,
+    marginVertical: 20,
+    flexDirection: "row",
+    borderBottomColor: Colors.accent,
     borderBottomWidth: 1,
+  },
+  textInput: {
+    width: "100%",
+    marginLeft: 15,
+    paddingBottom: 10,
+  },
+  forgotPasswordButton: {
+    marginTop: 10,
+  },
+  logInButton: {
+    width: "100%",
+    borderRadius: 22,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    paddingVertical: 12,
+    marginTop: "30%",
+  },
+  logInText: {
+    color: "#FFF",
+    fontSize: 22,
   },
 });
 

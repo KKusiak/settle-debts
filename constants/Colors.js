@@ -1,8 +1,6 @@
 const Colors = {
-  primary_ligth: "#228f9a",
-  primary_dark: "#448f8d",
-  accent_1: "#f2c53a",
-  accent_2: "#f6a425",
-  accent_3: "#304f16",
+  primary: "#008148",
+  accent: "#FFDA22",
+  gray: "#B0B5B3",
 };
 export default Colors;
