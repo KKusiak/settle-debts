@@ -9,52 +9,82 @@ import {
 
 import Colors from "../constants/Colors";
 import { MaterialIcons } from "@expo/vector-icons";
+import CustomButton from "../components/CustomButton";
+import { ScrollView } from "react-native-gesture-handler";
 const SignInScreen = (props) => {
   const [enteredEmail, setEnteredEmail] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
 
+  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [isPasswordValidated, setIsPasswordValidated] = useState(false);
+  function validateEmail(email) {
+    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+  }
+
   return (
-    <View style={styles.screen}>
-      <View style={styles.signUpButton}>
-        <Text>Don't have account yet?</Text>
-        <TouchableOpacity
-          style={{ marginLeft: 10 }}
-          onPress={() => props.navigation.navigate("SignUp")}>
-          <Text style={styles.signUpText}>Sign up</Text>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.field}>
-        <MaterialIcons name='mail-outline' size={30} color={Colors.gray} />
-        <TextInput
-          style={styles.textInput}
-          placeholder='Email'
-          placeholderTextColor={Colors.gray}
-        />
-      </View>
-      <View style={styles.field}>
-        <MaterialIcons name='lock-outline' size={30} color={Colors.gray} />
-        <TextInput
-          style={styles.textInput}
-          placeholder='Password'
-          placeholderTextColor={Colors.gray}
-          secureTextEntry={true}
-        />
-      </View>
-
-      <TouchableOpacity
-        style={styles.forgotPasswordButton}
-        onPress={() => props.navigation.navigate("ForgotPassword")}>
-        <Text style={styles.forgotPasswordButtonText}>
-          I forgot my password
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.logInButton}>
-        <View>
-          <Text style={styles.logInText}>Log in</Text>
+    <ScrollView>
+      <View style={styles.screen}>
+        <View style={styles.signUpContainer}>
+          <Text>Don't have account yet?</Text>
+          <CustomButton
+            onPress={() => props.navigation.navigate("SignUp")}
+            text='Sign up'
+            textStyle={styles.signUpText}
+            buttonStyle={{ marginLeft: 10 }}
+          />
         </View>
-      </TouchableOpacity>
-    </View>
+        <View
+          style={
+            isEmailValid ? styles.validatedField : styles.unValidatedField
+          }>
+          <MaterialIcons name='mail-outline' size={30} color={Colors.gray} />
+          <TextInput
+            style={styles.textInput}
+            placeholder='Email'
+            keyboardType='email-address'
+            placeholderTextColor={Colors.gray}
+            value={enteredEmail}
+            onChangeText={(newText) => {
+              setEnteredEmail(newText);
+              setIsEmailValid(validateEmail(newText));
+            }}
+          />
+        </View>
+        <View
+          style={
+            isPasswordValidated
+              ? styles.validatedField
+              : styles.unValidatedField
+          }>
+          <MaterialIcons name='lock-outline' size={30} color={Colors.gray} />
+          <TextInput
+            style={styles.textInput}
+            placeholder='Password'
+            placeholderTextColor={Colors.gray}
+            secureTextEntry={true}
+            value={enteredPassword}
+            onChangeText={(newText) => {
+              setEnteredPassword(newText);
+              if (newText.length > 0) {
+                setIsPasswordValidated(true);
+              } else setIsPasswordValidated(false);
+            }}
+          />
+        </View>
+        <CustomButton
+          buttonStyle={styles.forgotPasswordButton}
+          onPress={() => props.navigation.navigate("ForgotPassword")}
+          text='I forgot my password'
+          textStyle={styles.forgotPasswordButtonText}
+        />
+        <CustomButton
+          buttonStyle={styles.logInButton}
+          text='Log in'
+          textStyle={styles.logInText}
+        />
+      </View>
+    </ScrollView>
   );
 };
 
@@ -66,7 +96,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  signUpButton: {
+  signUpContainer: {
     alignSelf: "flex-end",
     flexDirection: "row",
     alignItems: "baseline",
@@ -77,7 +107,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: Colors.primary,
   },
-  field: {
+  unValidatedField: {
     marginHorizontal: 30,
     marginVertical: 20,
     flexDirection: "row",
@@ -103,6 +133,13 @@ const styles = StyleSheet.create({
   logInText: {
     color: "#FFF",
     fontSize: 22,
+  },
+  validatedField: {
+    marginHorizontal: 30,
+    marginVertical: 20,
+    flexDirection: "row",
+    borderBottomColor: Colors.primary,
+    borderBottomWidth: 1,
   },
 });
 
