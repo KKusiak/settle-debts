@@ -11,37 +11,16 @@ import Colors from "../constants/Colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import CustomButton from "../components/CustomButton";
 import { ScrollView } from "react-native-gesture-handler";
+import Input from "../components/Input";
 const SignUpScreen = (props) => {
   const [enteredName, setEnteredName] = useState("");
   const [enteredEmail, setEnteredEmail] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
   const [enteredRetypedPassword, setEnteredRetypedPassword] = useState("");
-  const [isPasswordEntered, setIsPasswordEntered] = useState(false);
-  const [passwordsMatch, setPasswordMatch] = useState(false);
-
-  const [passwordFieldStyle, setPasswordFieldStyle] = useState(
-    styles.unValidatedField
-  );
-  const [reTypePassFieldStyle, setReTypePassFieldStyle] = useState(
-    styles.disabledInput
-  );
-  const [isEmailValid, setIsEmailValid] = useState(false);
   function validateEmail(email) {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
   }
-  useEffect(() => {
-    if (isPasswordEntered) {
-      setReTypePassFieldStyle(styles.unValidatedField);
-    } else {
-      setReTypePassFieldStyle(styles.disabledInput);
-      setEnteredRetypedPassword("");
-    }
-    if (enteredPassword === enteredRetypedPassword && isPasswordEntered) {
-      setPasswordFieldStyle(styles.validatedField);
-      setReTypePassFieldStyle(styles.validatedField);
-    } else setPasswordFieldStyle(styles.unValidatedField);
-  }, [enteredPassword, enteredRetypedPassword]);
   return (
     <ScrollView>
       <View style={styles.screen}>
@@ -54,66 +33,61 @@ const SignUpScreen = (props) => {
             buttonStyle={{ marginLeft: 10 }}
           />
         </View>
-        <View
-          style={enteredName ? styles.validatedField : styles.unValidatedField}>
-          <MaterialIcons name='person-outline' size={30} color={Colors.gray} />
-          <TextInput
-            style={styles.textInput}
-            placeholder='Name'
-            placeholderTextColor={Colors.gray}
-            value={enteredName}
-            onChangeText={(newText) => setEnteredName(newText)}
-          />
-        </View>
-        <View
-          style={
-            isEmailValid ? styles.validatedField : styles.unValidatedField
-          }>
-          <MaterialIcons name='mail-outline' size={30} color={Colors.gray} />
-          <TextInput
-            style={styles.textInput}
-            placeholder='Email'
-            keyboardType='email-address'
-            placeholderTextColor={Colors.gray}
-            value={enteredEmail}
-            onChangeText={(newText) => {
-              setEnteredEmail(newText);
-              setIsEmailValid(validateEmail(newText));
-            }}
-          />
-        </View>
-        <View style={passwordFieldStyle}>
-          <MaterialIcons name='lock-outline' size={30} color={Colors.gray} />
-          <TextInput
-            style={styles.textInput}
-            placeholder='Password'
-            placeholderTextColor={Colors.gray}
-            secureTextEntry={true}
-            value={enteredPassword}
-            onChangeText={(newText) => {
-              if (newText.length > 0) {
-                setIsPasswordEntered(true);
-              } else {
-                setIsPasswordEntered(false);
-              }
-              setEnteredPassword(newText);
-            }}
-          />
-        </View>
-        <View style={reTypePassFieldStyle}>
-          <MaterialIcons name='lock-outline' size={30} color={Colors.gray} />
-          <TextInput
-            style={styles.textInput}
-            placeholder='Retype password'
-            placeholderTextColor={Colors.gray}
-            secureTextEntry={true}
-            editable={isPasswordEntered}
-            value={enteredRetypedPassword}
-            onChangeText={(newText) => {
-              setEnteredRetypedPassword(newText);
-            }}
-          />
-        </View>
+        <Input
+          leftIcon={
+            <MaterialIcons
+              name='person-outline'
+              size={30}
+              color={Colors.gray}
+            />
+          }
+          placeholder='Name'
+          inputValue={enteredName}
+          onChangeText={setEnteredName}
+        />
+        <Input
+          leftIcon={
+            <MaterialIcons name='mail-outline' size={30} color={Colors.gray} />
+          }
+          placeholder='Email'
+          keyboardType='email-address'
+          inputValue={enteredEmail}
+          onChangeText={setEnteredEmail}
+          validatingFunction={validateEmail}
+        />
+        <Input
+          leftIcon={
+            <MaterialIcons name='lock-outline' size={30} color={Colors.gray} />
+          }
+          placeholder='Password'
+          secureTextEntry={true}
+          inputValue={enteredPassword}
+          onChangeText={setEnteredPassword}
+          validatingFunction={() => {
+            if (enteredPassword.length > 0) return true;
+            else return false;
+          }}
+        />
+        <Input
+          leftIcon={
+            <MaterialIcons name='lock-outline' size={30} color={Colors.gray} />
+          }
+          placeholder='Retype password'
+          secureTextEntry={true}
+          inputValue={enteredRetypedPassword}
+          onChangeText={setEnteredRetypedPassword}
+          validatingFunction={() => {
+            if (
+              enteredPassword === enteredRetypedPassword &&
+              enteredPassword.length > 0
+            ) {
+              return true;
+            } else {
+              return false;
+            }
+          }}
+          disabled={!enteredPassword}
+        />
         <CustomButton
           buttonStyle={styles.signUpButton}
           text='Sign up'
@@ -144,18 +118,6 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: Colors.primary,
   },
-  unValidatedField: {
-    marginHorizontal: 30,
-    marginVertical: 20,
-    flexDirection: "row",
-    borderBottomColor: Colors.accent,
-    borderBottomWidth: 1,
-  },
-  textInput: {
-    width: "100%",
-    marginLeft: 15,
-    paddingBottom: 10,
-  },
   forgotPasswordButton: {
     marginTop: 10,
   },
@@ -170,20 +132,6 @@ const styles = StyleSheet.create({
   signUpText: {
     color: "#FFF",
     fontSize: 22,
-  },
-  disabledInput: {
-    marginHorizontal: 30,
-    marginVertical: 20,
-    flexDirection: "row",
-    borderBottomColor: Colors.gray,
-    borderBottomWidth: 1,
-  },
-  validatedField: {
-    marginHorizontal: 30,
-    marginVertical: 20,
-    flexDirection: "row",
-    borderBottomColor: Colors.primary,
-    borderBottomWidth: 1,
   },
 });
 

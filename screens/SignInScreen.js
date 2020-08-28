@@ -11,6 +11,7 @@ import Colors from "../constants/Colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import CustomButton from "../components/CustomButton";
 import { ScrollView } from "react-native-gesture-handler";
+import Input from "../components/Input";
 const SignInScreen = (props) => {
   const [enteredEmail, setEnteredEmail] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
@@ -21,7 +22,6 @@ const SignInScreen = (props) => {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
   }
-
   return (
     <ScrollView>
       <View style={styles.screen}>
@@ -34,44 +34,33 @@ const SignInScreen = (props) => {
             buttonStyle={{ marginLeft: 10 }}
           />
         </View>
-        <View
-          style={
-            isEmailValid ? styles.validatedField : styles.unValidatedField
-          }>
-          <MaterialIcons name='mail-outline' size={30} color={Colors.gray} />
-          <TextInput
-            style={styles.textInput}
-            placeholder='Email'
-            keyboardType='email-address'
-            placeholderTextColor={Colors.gray}
-            value={enteredEmail}
-            onChangeText={(newText) => {
-              setEnteredEmail(newText);
-              setIsEmailValid(validateEmail(newText));
-            }}
-          />
-        </View>
-        <View
-          style={
-            isPasswordValidated
-              ? styles.validatedField
-              : styles.unValidatedField
-          }>
-          <MaterialIcons name='lock-outline' size={30} color={Colors.gray} />
-          <TextInput
-            style={styles.textInput}
-            placeholder='Password'
-            placeholderTextColor={Colors.gray}
-            secureTextEntry={true}
-            value={enteredPassword}
-            onChangeText={(newText) => {
-              setEnteredPassword(newText);
-              if (newText.length > 0) {
-                setIsPasswordValidated(true);
-              } else setIsPasswordValidated(false);
-            }}
-          />
-        </View>
+        <Input
+          leftIcon={
+            <MaterialIcons name='mail-outline' size={30} color={Colors.gray} />
+          }
+          placeholder='Email'
+          inputValue={enteredEmail}
+          onChangeText={(newText) => {
+            setEnteredEmail(newText);
+            setIsEmailValid(validateEmail(newText));
+          }}
+          validatingFunction={validateEmail}
+          keyboardType='email-address'
+        />
+        <Input
+          placeholder='Password'
+          inputValue={enteredPassword}
+          onChangeText={(newText) => setEnteredPassword(newText)}
+          validatingFunction={() => {
+            if (enteredPassword.length > 0) {
+              return true;
+            } else return false;
+          }}
+          leftIcon={
+            <MaterialIcons name='lock-outline' size={30} color={Colors.gray} />
+          }
+          secureTextEntry={true}
+        />
         <CustomButton
           buttonStyle={styles.forgotPasswordButton}
           onPress={() => props.navigation.navigate("ForgotPassword")}
@@ -107,18 +96,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: Colors.primary,
   },
-  unValidatedField: {
-    marginHorizontal: 30,
-    marginVertical: 20,
-    flexDirection: "row",
-    borderBottomColor: Colors.accent,
-    borderBottomWidth: 1,
-  },
-  textInput: {
-    width: "100%",
-    marginLeft: 15,
-    paddingBottom: 10,
-  },
+
   forgotPasswordButton: {
     marginTop: 10,
   },
@@ -133,13 +111,6 @@ const styles = StyleSheet.create({
   logInText: {
     color: "#FFF",
     fontSize: 22,
-  },
-  validatedField: {
-    marginHorizontal: 30,
-    marginVertical: 20,
-    flexDirection: "row",
-    borderBottomColor: Colors.primary,
-    borderBottomWidth: 1,
   },
 });
 

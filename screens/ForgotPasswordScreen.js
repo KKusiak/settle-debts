@@ -10,7 +10,7 @@ import Colors from "../constants/Colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import CustomButton from "../components/CustomButton";
 import { ScrollView } from "react-native-gesture-handler";
-
+import Input from "../components/Input";
 const ForgotPasswordScreen = (props) => {
   const [enteredEmail, setEnteredEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
@@ -31,23 +31,16 @@ const ForgotPasswordScreen = (props) => {
             buttonStyle={{ marginLeft: 10 }}
           />
         </View>
-        <View
-          style={
-            isEmailValid ? styles.validatedField : styles.unValidatedField
-          }>
-          <MaterialIcons name='mail-outline' size={30} color={Colors.gray} />
-          <TextInput
-            style={styles.textInput}
-            placeholder='Email'
-            keyboardType='email-address'
-            placeholderTextColor={Colors.gray}
-            value={enteredEmail}
-            onChangeText={(newText) => {
-              setEnteredEmail(newText);
-              setIsEmailValid(validateEmail(newText));
-            }}
-          />
-        </View>
+        <Input
+          leftIcon={
+            <MaterialIcons name='mail-outline' size={30} color={Colors.gray} />
+          }
+          placeholder='Email'
+          keyboardType='email-address'
+          inputValue={enteredEmail}
+          onChangeText={setEnteredEmail}
+          validatingFunction={validateEmail}
+        />
         <CustomButton
           buttonStyle={styles.sendLinkButton}
           text='Send reset link'
@@ -97,20 +90,6 @@ const styles = StyleSheet.create({
   sendLinkButtonText: {
     color: "#FFF",
     fontSize: 22,
-  },
-  validatedField: {
-    marginHorizontal: 30,
-    marginVertical: 20,
-    flexDirection: "row",
-    borderBottomColor: Colors.primary,
-    borderBottomWidth: 1,
-  },
-  unValidatedField: {
-    marginHorizontal: 30,
-    marginVertical: 20,
-    flexDirection: "row",
-    borderBottomColor: Colors.accent,
-    borderBottomWidth: 1,
   },
 });
 export default ForgotPasswordScreen;

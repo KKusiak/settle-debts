@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from "react";
+import React, { useState, Fragment, useEffect } from "react";
 import {
   View,
   Button,
@@ -12,9 +12,16 @@ import { FlatList } from "react-native-gesture-handler";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import Colors from "../constants/Colors";
 import CreateGroupOverlay from "../components/CreateGroupOverlay";
+import Input from "../components/Input";
 const GroupScreen = (props) => {
+  const [refresh, toggleRefresh] = useState(false);
   const [groupsList, setGroupsList] = useState([
-    { title: "TESt", description: "test", members: [] },
+    {
+      title: "TESt",
+      description: "test",
+      members: [],
+      selected: false,
+    },
   ]);
   const [newGroup, setNewGroup] = useState({
     title: "",
@@ -26,12 +33,28 @@ const GroupScreen = (props) => {
   const toggleVisible = () => {
     setIsVisible(!isVisible);
   };
-  const renderListItem = (item) => {
+  const onSelect = (data, index) => {
+    let updatedItem = { ...data };
+    updatedItem.selected = !updatedItem.selected;
+    const updatedGroup = groupsList;
+    updatedGroup[index] = updatedItem;
+
+    setGroupsList([...updatedGroup]);
+  };
+  const renderListItem = (itemData, index) => {
     return (
-      <View style={styles.listItemContainer}>
-        <TouchableOpacity>
-          <Text style={styles.title}>{item.title}</Text>
-          <Text style={styles.description}>{item.description}</Text>
+      <View
+        style={
+          itemData.item.selected
+            ? styles.selectedGroup
+            : styles.listItemContainer
+        }>
+        <TouchableOpacity
+          onLongPress={() => {
+            onSelect(itemData.item, index);
+          }}>
+          <Text style={styles.title}>{itemData.item.title}</Text>
+          <Text style={styles.description}>{itemData.item.description}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -46,13 +69,12 @@ const GroupScreen = (props) => {
     setNewGroup((group) => ({ ...group, members: updatedMembers }));
     setMemberName("");
   };
-
   return (
     <View style={styles.screen}>
       <View>
         <FlatList
           data={groupsList}
-          renderItem={(itemData) => renderListItem(itemData.item)}
+          renderItem={(itemData) => renderListItem(itemData, itemData.index)}
           keyExtractor={(itemData) => itemData.title}
         />
       </View>
@@ -66,7 +88,7 @@ const GroupScreen = (props) => {
             setNewGroup({ title: "", description: "", members: [] });
           setMemberName("");
         }}
-        overlayStyle={styles.overlayStyle}
+        fullScreen={true}
         animated={true}
         animationType='fade'>
         <CreateGroupOverlay
@@ -109,24 +131,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  validatedField: {
-    marginHorizontal: 10,
-    marginVertical: 15,
-    flexDirection: "row",
-    borderBottomColor: Colors.primary,
-    borderBottomWidth: 1,
-  },
-  unValidatedField: {
-    marginHorizontal: 10,
-    marginVertical: 15,
-    flexDirection: "row",
-    borderBottomColor: Colors.accent,
-    borderBottomWidth: 1,
-  },
   textInput: {
     width: "100%",
     marginLeft: 15,
     paddingBottom: 5,
+  },
+  selectedGroup: {
+    backgroundColor: "red",
   },
 });
 
