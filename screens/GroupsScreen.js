@@ -34,10 +34,12 @@ const GroupScreen = (props) => {
     setIsVisible(!isVisible);
   };
   const onSelect = (data, index) => {
-    let updatedItem = { ...data };
-    updatedItem.selected = !updatedItem.selected;
-    const updatedGroup = groupsList;
-    updatedGroup[index] = updatedItem;
+    // let updatedItem = { ...data };
+    // updatedItem.selected = !updatedItem.selected;
+    // const updatedGroup = groupsList;
+    // updatedGroup[index] = updatedItem;
+
+    const updatedGroup = groupsList.filter((item) => item.title !== data.title);
 
     setGroupsList([...updatedGroup]);
   };
@@ -52,6 +54,9 @@ const GroupScreen = (props) => {
         <TouchableOpacity
           onLongPress={() => {
             onSelect(itemData.item, index);
+          }}
+          onPress={() => {
+            props.navigation.navigate("GroupDetails");
           }}>
           <Text style={styles.title}>{itemData.item.title}</Text>
           <Text style={styles.description}>{itemData.item.description}</Text>
@@ -69,18 +74,34 @@ const GroupScreen = (props) => {
     setNewGroup((group) => ({ ...group, members: updatedMembers }));
     setMemberName("");
   };
+  const onDeleteMember = (index) => {
+    const updatedMembers = newGroup.members.filter(
+      (value, itemIndex) => itemIndex !== index
+    );
+    setNewGroup((group) => ({ ...group, members: updatedMembers }));
+  };
   return (
-    <View style={styles.screen}>
-      <View>
-        <FlatList
-          data={groupsList}
-          renderItem={(itemData) => renderListItem(itemData, itemData.index)}
-          keyExtractor={(itemData) => itemData.title}
-        />
+    <View
+      style={groupsList.length === 0 ? styles.emptyListScreen : styles.screen}>
+      {groupsList.length === 0 ? (
+        <Text style={styles.emptyListMessage}>
+          You don't have a group, create your first with the button below
+        </Text>
+      ) : (
+        <View style={{ flex: 1 }}>
+          <FlatList
+            data={groupsList}
+            renderItem={(itemData) => renderListItem(itemData, itemData.index)}
+            keyExtractor={(itemData) => itemData.title}
+          />
+        </View>
+      )}
+
+      <View style={{ alignItems: "center" }}>
+        <TouchableOpacity style={styles.addButton} onPress={toggleVisible}>
+          <AntDesign name='plus' color='white' size={27} />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity style={styles.addButton} onPress={toggleVisible}>
-        <AntDesign name='plus' color='white' size={27} />
-      </TouchableOpacity>
       <Overlay
         isVisible={isVisible}
         onBackdropPress={() => {
@@ -98,6 +119,7 @@ const GroupScreen = (props) => {
           setMemberName={setMemberName}
           onAddMember={onAddMember}
           onAddToList={onAddToList}
+          onDeleteMember={onDeleteMember}
         />
       </Overlay>
     </View>
@@ -105,13 +127,18 @@ const GroupScreen = (props) => {
 };
 const styles = StyleSheet.create({
   screen: { flex: 1, paddingHorizontal: 50, paddingTop: 75 },
+  emptyListScreen: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 50,
+    paddingTop: 75,
+  },
   addButton: {
-    position: "absolute",
-    bottom: "10%",
-    right: "20%",
     borderRadius: 50,
     width: 60,
     height: 60,
+    marginBottom: 45,
     backgroundColor: Colors.primary,
     justifyContent: "center",
     alignItems: "center",
@@ -136,8 +163,9 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     paddingBottom: 5,
   },
-  selectedGroup: {
-    backgroundColor: "red",
+  emptyListMessage: {
+    fontSize: 16,
+    textAlign: "center",
   },
 });
 

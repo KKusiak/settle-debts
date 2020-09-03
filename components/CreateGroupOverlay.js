@@ -10,8 +10,26 @@ import {
 import { MaterialIcons } from "@expo/vector-icons";
 import Colors from "../constants/Colors";
 import Input from "./Input";
+import { ScrollView } from "react-native-gesture-handler";
 const CreateGroupOverlay = (props) => {
   const [isMemberEmpty, setIsMembersEmpty] = useState(true);
+  const deleteHandler = (index) => {
+    props.onDeleteMember(index);
+  };
+  const renderMemberItem = (itemData) => {
+    return (
+      <View style={styles.memberItemContainer}>
+        <Text style={{ flex: 1 }}>{itemData.item}</Text>
+        <TouchableOpacity
+          style={styles.memberItemDeleteButton}
+          onPress={() => {
+            deleteHandler(itemData.index);
+          }}>
+          <MaterialIcons name='delete' size={25} color='#ff3d00' />
+        </TouchableOpacity>
+      </View>
+    );
+  };
   return (
     <Fragment>
       <View style={styles.screen}>
@@ -27,6 +45,8 @@ const CreateGroupOverlay = (props) => {
               return { ...group, title: newText };
             });
           }}
+          errorMessage="Field can't be empty"
+          renderError={true}
         />
         <Input
           placeholder='Description'
@@ -48,9 +68,7 @@ const CreateGroupOverlay = (props) => {
             <FlatList
               data={props.newGroup.members}
               keyExtractor={(item) => item}
-              renderItem={(itemData) => (
-                <Text style={styles.member}>{itemData.item}</Text>
-              )}
+              renderItem={(itemData) => renderMemberItem(itemData)}
               style={styles.membersList}
               persistentScrollbar={true}
             />
@@ -67,6 +85,16 @@ const CreateGroupOverlay = (props) => {
             inputValue={props.memberName}
             onChangeText={(newText) => {
               props.setMemberName(newText);
+            }}
+            validatingFunction={() => {
+              if (props.newGroup.members.length <= 1) return false;
+              else return true;
+            }}
+            errorMessage='Group must have at least 2 members'
+            renderError={true}
+            onSubmitEditing={() => {
+              props.onAddMember();
+              setIsMembersEmpty(false);
             }}
           />
           <TouchableOpacity
@@ -136,5 +164,12 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 10,
   },
+  memberItemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 10,
+    marginVertical: 10,
+  },
+  memberItemDeleteButton: { marginLeft: 20 },
 });
 export default CreateGroupOverlay;

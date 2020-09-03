@@ -54,6 +54,8 @@ const SignUpScreen = (props) => {
           inputValue={enteredEmail}
           onChangeText={setEnteredEmail}
           validatingFunction={validateEmail}
+          errorMessage='Please provide valid email'
+          renderError={true}
         />
         <Input
           leftIcon={
@@ -64,9 +66,11 @@ const SignUpScreen = (props) => {
           inputValue={enteredPassword}
           onChangeText={setEnteredPassword}
           validatingFunction={() => {
-            if (enteredPassword.length > 0) return true;
+            if (enteredPassword.length >= 8) return true;
             else return false;
           }}
+          errorMessage='Password must be at least 8 characters long'
+          renderError={true}
         />
         <Input
           leftIcon={
@@ -87,6 +91,8 @@ const SignUpScreen = (props) => {
             }
           }}
           disabled={!enteredPassword}
+          errorMessage='The passwords entered do not match'
+          renderError={true}
         />
         <CustomButton
           buttonStyle={styles.signUpButton}

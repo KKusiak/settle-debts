@@ -3,10 +3,10 @@ import { View, StyleSheet, Text } from "react-native";
 import { TextInput } from "react-native-gesture-handler";
 import Colors from "../constants/Colors";
 const Input = (props) => {
-  const [isErrored, setIsErrored] = useState(true);
+  const [isErrored, setIsErrored] = useState(false);
   const [inputStyle, setInputStyle] = useState(styles.unValidatedField);
   const renderError = () => {
-    if (isErrored) {
+    if (isErrored === true) {
       return <Text style={styles.errorMessage}>{props.errorMessage}</Text>;
     }
   };
@@ -31,8 +31,7 @@ const Input = (props) => {
       setIsErrored(false);
       setInputStyle(styles.disabledInput);
     }
-  }, [inputValue, disabled]);
-
+  }, [inputValue, disabled, isErrored]);
   return (
     <View style={styles.inputContainerStyle}>
       {props.header ? <Text style={styles.header}>{props.header}</Text> : null}
@@ -48,6 +47,7 @@ const Input = (props) => {
           editable={!disabled}
           secureTextEntry={props.secureTextEntry}
           keyboardType={props.keyboardType}
+          onSubmitEditing={props.onSubmitEditing}
         />
         {props.rightIcon ? props.rightIcon : null}
       </View>
@@ -57,7 +57,12 @@ const Input = (props) => {
 };
 
 const styles = StyleSheet.create({
-  errorMessage: { color: "red", fontSize: 12 },
+  errorMessage: {
+    color: "red",
+    fontSize: 12,
+    marginHorizontal: 10,
+    marginBottom: 5,
+  },
   header: { fontSize: 16 },
   validatedField: {
     marginHorizontal: 10,

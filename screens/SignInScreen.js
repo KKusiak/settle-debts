@@ -71,6 +71,9 @@ const SignInScreen = (props) => {
           buttonStyle={styles.logInButton}
           text='Log in'
           textStyle={styles.logInText}
+          onPress={() => {
+            props.navigation.navigate("Groups");
+          }}
         />
       </View>
     </ScrollView>
