@@ -6,14 +6,18 @@ import {
   StyleSheet,
   TextInput,
 } from "react-native";
+
+import { localized, init } from "../lozalization/localized";
 import Colors from "../constants/Colors";
-import { MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
 import CustomButton from "../components/CustomButton";
 import { ScrollView } from "react-native-gesture-handler";
 import Input from "../components/Input";
+import firebase from "firebase";
 const ForgotPasswordScreen = (props) => {
   const [enteredEmail, setEnteredEmail] = useState("");
   const [isEmailValid, setIsEmailValid] = useState(false);
+  const [enteredPassword, setEnteredPassword] = useState("");
   function validateEmail(email) {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
@@ -23,10 +27,10 @@ const ForgotPasswordScreen = (props) => {
     <ScrollView>
       <View style={styles.screen}>
         <View style={styles.container}>
-          <Text>Remember password?</Text>
+          <Text>{localized("RememberPassword")}</Text>
           <CustomButton
             onPress={() => props.navigation.navigate("SignIn")}
-            text='Sign in'
+            text={localized("signIn")}
             textStyle={styles.signInText}
             buttonStyle={{ marginLeft: 10 }}
           />
@@ -43,8 +47,19 @@ const ForgotPasswordScreen = (props) => {
         />
         <CustomButton
           buttonStyle={styles.sendLinkButton}
-          text='Send reset link'
+          text={localized("SendNewPassword")}
           textStyle={styles.sendLinkButtonText}
+          onPress={() => {
+            firebase
+              .auth()
+              .sendPasswordResetEmail(enteredEmail)
+              .then(() => {
+                props.navigation.navigate("SignIn");
+              })
+              .catch((error) => {
+                alert(error.message);
+              });
+          }}
         />
       </View>
     </ScrollView>

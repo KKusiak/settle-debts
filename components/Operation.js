@@ -1,25 +1,52 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
+import { useSelector, useDispatch } from "react-redux";
 import Colors from "../constants/Colors";
+
 const Operation = (props) => {
   const operation = props.operation;
+
+  const group = props.group;
+  const payer = group.members.find((user) => user.id === operation.payer.id);
+
+  const recipents = operation.recipents.map((recipent) =>
+    group.members.find((user) => user.id === recipent.id)
+  );
+
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        onPress={() => {
-          props.navigation.navigate("OperationDetails");
-        }}>
+    <TouchableOpacity
+      onLongPress={() => props.onLongPress(operation)}
+      onPress={() => {
+        props.navigation.navigate("OperationDetails", {
+          operationId: operation.operationId,
+          groupId: group.id,
+        });
+      }}>
+      <View style={styles.container}>
         <View style={styles.leftColumn}>
           <Text style={styles.title}>{operation.title}</Text>
           <Text>
-            Payed by <Text style={styles.payer}>{operation.payer}</Text>
+            Payed by <Text style={styles.payer}>{payer.name}</Text>
           </Text>
         </View>
         <View style={styles.rightColumn}>
-          <Text style={styles.value}>{operation.value.toFixed(2)} zł</Text>
+          <Text style={styles.value}>{operation.value.format()} </Text>
+          <FlatList
+            data={recipents}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={(itemData) => (
+              <Text style={styles.recipent}>{itemData.item.name}</Text>
+            )}
+          />
         </View>
-      </TouchableOpacity>
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 };
 
@@ -38,5 +65,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 20 },
   payer: { fontWeight: "bold" },
   value: { fontWeight: "bold" },
+  recipent: { fontWeight: "bold" },
 });
 export default Operation;

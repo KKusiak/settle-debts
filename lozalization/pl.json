@@ -1,0 +1,17 @@
+{
+  "signIn": "Zaloguj się",
+  "signUp": "Zarejestruj się",
+  "forgotPassword": "Nie pamiętam hasła",
+  "Password": "Hasło",
+  "RetypePassword": "Powtórz hasło",
+  "haveAccount?": "Posiadasz konto?",
+  "Name": "Imię",
+  "accountNotCreatedQuestion": "Nie posiadasz konta?",
+  "ProvideValidEmail": "Wprowadź poprawny adres email",
+  "ProvideValidPassword": "Hasło musi zawierać co najmniej 8 znaków",
+  "PasswordsDontMatch": "Hasła nie są identyczne",
+  "RememberPassword": "Pamiętasz hasło?",
+  "SendNewPassword": "Zmień hasło",
+  "Refunds": "Zwroty pieniędzy",
+  "shouldPay": "powinien(na) oddać"
+}

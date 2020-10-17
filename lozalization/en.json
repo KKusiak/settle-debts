@@ -1,0 +1,17 @@
+{
+  "signIn": "Sign in",
+  "signUp": "Sign up",
+  "forgotPassword": "I forgot my password",
+  "Password": "password",
+  "RetypePassword": "Retype password",
+  "haveAccount?": "Have account?",
+  "Name": "Name",
+  "accountNotCreatedQuestion": "Don't have account yet?",
+  "ProvideValidEmail": "Provide valid email",
+  "ProvideValidPassword": "Password must be at least 8 characters long",
+  "PasswordsDontMatch": "The passwords entered do not match",
+  "RememberPassword": "Remember password?",
+  "SendNewPassword": "Change password",
+  "Refunds": "Refunds",
+  "shouldPay": "should pay"
+}

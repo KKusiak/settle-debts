@@ -6,13 +6,15 @@ import {
   StyleSheet,
   TextInput,
 } from "react-native";
-
+import { localized, init } from "../lozalization/localized";
 import Colors from "../constants/Colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import CustomButton from "../components/CustomButton";
 import { ScrollView } from "react-native-gesture-handler";
 import Input from "../components/Input";
+import firebase from "firebase";
 const SignUpScreen = (props) => {
+  init();
   const [enteredName, setEnteredName] = useState("");
   const [enteredEmail, setEnteredEmail] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
@@ -25,10 +27,10 @@ const SignUpScreen = (props) => {
     <ScrollView>
       <View style={styles.screen}>
         <View style={styles.signInContainer}>
-          <Text>Have account?</Text>
+          <Text>{localized("haveAccount?")}</Text>
           <CustomButton
             onPress={() => props.navigation.navigate("SignIn")}
-            text='Sign In'
+            text={localized("signIn")}
             textStyle={styles.signInText}
             buttonStyle={{ marginLeft: 10 }}
           />
@@ -41,7 +43,7 @@ const SignUpScreen = (props) => {
               color={Colors.gray}
             />
           }
-          placeholder='Name'
+          placeholder={localized("Name")}
           inputValue={enteredName}
           onChangeText={setEnteredName}
         />
@@ -54,14 +56,14 @@ const SignUpScreen = (props) => {
           inputValue={enteredEmail}
           onChangeText={setEnteredEmail}
           validatingFunction={validateEmail}
-          errorMessage='Please provide valid email'
+          errorMessage={localized("ProvideValidEmail")}
           renderError={true}
         />
         <Input
           leftIcon={
             <MaterialIcons name='lock-outline' size={30} color={Colors.gray} />
           }
-          placeholder='Password'
+          placeholder={localized("Password")}
           secureTextEntry={true}
           inputValue={enteredPassword}
           onChangeText={setEnteredPassword}
@@ -69,14 +71,14 @@ const SignUpScreen = (props) => {
             if (enteredPassword.length >= 8) return true;
             else return false;
           }}
-          errorMessage='Password must be at least 8 characters long'
+          errorMessage={localized("ProvideValidPassword")}
           renderError={true}
         />
         <Input
           leftIcon={
             <MaterialIcons name='lock-outline' size={30} color={Colors.gray} />
           }
-          placeholder='Retype password'
+          placeholder={localized("RetypePassword")}
           secureTextEntry={true}
           inputValue={enteredRetypedPassword}
           onChangeText={setEnteredRetypedPassword}
@@ -91,13 +93,34 @@ const SignUpScreen = (props) => {
             }
           }}
           disabled={!enteredPassword}
-          errorMessage='The passwords entered do not match'
+          errorMessage={localized("PasswordsDontMatch")}
           renderError={true}
         />
         <CustomButton
           buttonStyle={styles.signUpButton}
-          text='Sign up'
+          text={localized("signUp")}
           textStyle={styles.signUpText}
+          onPress={() => {
+            firebase
+              .auth()
+              .createUserWithEmailAndPassword(enteredEmail, enteredPassword)
+              .then(() => {
+                firebase
+                  .auth()
+                  .currentUser.updateProfile({ displayName: enteredName })
+                  .catch((error) => console.log(error));
+                firebase.auth().useDeviceLanguage();
+              })
+              .catch((error) => {
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                if (errorCode == "auth/weak-password") {
+                  alert("The password is too weak.");
+                } else {
+                  alert(errorMessage);
+                }
+              });
+          }}
         />
       </View>
     </ScrollView>

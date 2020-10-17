@@ -6,13 +6,18 @@ import {
   StyleSheet,
   TextInput,
 } from "react-native";
-
+import { localized, init } from "../lozalization/localized";
 import Colors from "../constants/Colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import CustomButton from "../components/CustomButton";
 import { ScrollView } from "react-native-gesture-handler";
 import Input from "../components/Input";
+import firebase from "firebase";
+import { useDispatch } from "react-redux";
+import { getGroups } from "../store/actions/groups";
 const SignInScreen = (props) => {
+  init();
+  const dispatch = useDispatch();
   const [enteredEmail, setEnteredEmail] = useState("");
   const [enteredPassword, setEnteredPassword] = useState("");
 
@@ -26,10 +31,10 @@ const SignInScreen = (props) => {
     <ScrollView>
       <View style={styles.screen}>
         <View style={styles.signUpContainer}>
-          <Text>Don't have account yet?</Text>
+          <Text>{localized("accountNotCreatedQuestion")}</Text>
           <CustomButton
             onPress={() => props.navigation.navigate("SignUp")}
-            text='Sign up'
+            text={localized("signUp")}
             textStyle={styles.signUpText}
             buttonStyle={{ marginLeft: 10 }}
           />
@@ -48,7 +53,7 @@ const SignInScreen = (props) => {
           keyboardType='email-address'
         />
         <Input
-          placeholder='Password'
+          placeholder={localized("Password")}
           inputValue={enteredPassword}
           onChangeText={(newText) => setEnteredPassword(newText)}
           validatingFunction={() => {
@@ -64,15 +69,24 @@ const SignInScreen = (props) => {
         <CustomButton
           buttonStyle={styles.forgotPasswordButton}
           onPress={() => props.navigation.navigate("ForgotPassword")}
-          text='I forgot my password'
+          text={localized("forgotPassword")}
           textStyle={styles.forgotPasswordButtonText}
         />
         <CustomButton
           buttonStyle={styles.logInButton}
-          text='Log in'
+          text={localized("signIn")}
           textStyle={styles.logInText}
           onPress={() => {
-            props.navigation.navigate("Groups");
+            firebase
+              .auth()
+              .signInWithEmailAndPassword(enteredEmail, enteredPassword)
+              .then(() => {
+                //dispatch(getGroups());
+              })
+              .catch((error) => {
+                const errorMessage = error.message;
+                console.error;
+              });
           }}
         />
       </View>

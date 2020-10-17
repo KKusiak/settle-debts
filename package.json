@@ -8,12 +8,20 @@
     "eject": "expo eject"
   },
   "dependencies": {
+    "@react-native-community/checkbox": "^0.5.4",
     "@react-native-community/masked-view": "0.1.10",
+    "@react-native-community/picker": "1.6.0",
     "@react-navigation/bottom-tabs": "^5.8.0",
     "@react-navigation/native": "^5.7.3",
     "@react-navigation/stack": "^5.9.0",
+    "currency.js": "^2.0.3",
     "expo": "~38.0.8",
+    "expo-localization": "~8.2.1",
     "expo-status-bar": "^1.0.2",
+    "firebase": "^7.23.0",
+    "i18n-js": "^3.7.1",
+    "lodash.clonedeep": "^4.5.0",
+    "lodash.memoize": "^4.1.2",
     "react": "~16.11.0",
     "react-dom": "~16.11.0",
     "react-native": "https://github.com/expo/react-native/archive/sdk-38.0.2.tar.gz",
@@ -32,7 +40,10 @@
     "react-navigation-bottom-tabs": "^1.0.2",
     "react-navigation-stack": "^2.8.2",
     "react-redux": "^7.2.1",
+    "react-redux-firebase": "^2.5.1",
     "redux": "^4.0.5",
+    "redux-firestore": "^0.14.0",
+    "redux-thunk": "^2.3.0",
     "victory-native": "^35.0.1"
   },
   "devDependencies": {

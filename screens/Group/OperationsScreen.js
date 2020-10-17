@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
+import { useIsFocused } from "@react-navigation/native";
 import {
   View,
   StyleSheet,
@@ -9,44 +10,80 @@ import {
 import Operation from "../../components/Operation";
 import { AntDesign } from "@expo/vector-icons";
 import Colors from "../../constants/Colors";
+import { MaterialIcons } from "@expo/vector-icons";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  createOperation,
+  deleteOperation,
+  updateOperation,
+} from "../../store/actions/operations";
+import { compose } from "redux";
 const OperationsScreen = (props) => {
-  const operations = [
-    { title: "Fuel", payer: "Mark", value: 50 },
-    { title: "Hotel", payer: "Henry", value: 350 },
-    { title: "Lunch at castle", payer: "David", value: 65 },
-    { title: "Fuel", payer: "Mark", value: 50 },
-    { title: "Hotel", payer: "Henry", value: 350 },
-    { title: "Hotel", payer: "Henry", value: 350 },
-    { title: "Lunch at castle", payer: "David", value: 65 },
-    { title: "Fuel", payer: "Mark", value: 50 },
-    { title: "Hotel", payer: "Henry", value: 350 },
-    { title: "Hotel", payer: "Henry", value: 350 },
-    { title: "Lunch at castle", payer: "David", value: 65 },
-    { title: "Fuel", payer: "Mark", value: 50 },
-    { title: "Hotel", payer: "Henry", value: 350 },
-    { title: "Hotel", payer: "Henry", value: 350 },
-    { title: "Lunch at castle", payer: "David", value: 65 },
-    { title: "Fuel", payer: "Mark", value: 50 },
-    { title: "Hotel", payer: "Henry", value: 350 },
-  ];
+  const { navigation } = props;
+
+  const dispatch = useDispatch();
+  const isFocused = useIsFocused();
+  const tabNavigatorState = props.navigation
+    .dangerouslyGetParent()
+    .dangerouslyGetState();
+  const groupId = tabNavigatorState.routes.find(
+    (route) => route.name === "Operations"
+  ).params.groupId;
+
+  const group = useSelector((state) => state.groups.groups).find(
+    (group) => group.id === groupId
+  );
+
+  const operations = useSelector((state) => state.operations.operations).filter(
+    (operation) => operation.groupId === groupId
+  );
+
+  const longPressHandler = (operation) => {
+    dispatch(deleteOperation(operation.id));
+  };
+
+  // effect updating header title if necessary
+  useEffect(() => {
+    props.navigation.setOptions({
+      title: group.title,
+    });
+  }, [navigation, group, isFocused]);
+
+  // setting up header button
+  props.navigation.setOptions({
+    headerRight: () => (
+      <TouchableOpacity
+        onPress={() => navigation.navigate("GroupEdit", { groupId: group.id })}>
+        <MaterialIcons name='edit' color='black' size={24} />
+      </TouchableOpacity>
+    ),
+    headerRightContainerStyle: { marginHorizontal: 20 },
+  });
+
   return (
     <View style={styles.screen}>
       <View style={{ flex: 1, marginBottom: 20 }}>
         <FlatList
           data={operations}
-          keyExtractor={(item) =>
-            Math.floor(Math.random() * 100000 + 1).toString()
-          }
-          renderItem={(itemData) => (
-            <Operation
-              operation={itemData.item}
-              navigation={props.navigation}
-            />
-          )}
+          keyExtractor={(item) => item.operationId.toString()}
+          renderItem={(itemData) => {
+            return (
+              <Operation
+                operation={itemData.item}
+                group={group}
+                navigation={props.navigation}
+                onLongPress={longPressHandler}
+              />
+            );
+          }}
         />
       </View>
       <View style={{ alignItems: "center" }}>
-        <TouchableOpacity style={styles.addButton} onPress={() => {}}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => {
+            navigation.navigate("NewOperation", { groupId: group.id });
+          }}>
           <AntDesign name='plus' color='white' size={27} />
         </TouchableOpacity>
       </View>

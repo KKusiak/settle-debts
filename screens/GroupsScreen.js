@@ -1,48 +1,49 @@
-import React, { useState, Fragment, useEffect } from "react";
+import React, { useState, Fragment, useEffect, useLayoutEffect } from "react";
 import {
   View,
-  Button,
   Text,
-  TextInput,
+  RefreshControl,
   StyleSheet,
   TouchableOpacity,
+  ScrollView,
+  Button,
 } from "react-native";
-import { Overlay } from "react-native-elements";
+
 import { FlatList } from "react-native-gesture-handler";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import Colors from "../constants/Colors";
-import CreateGroupOverlay from "../components/CreateGroupOverlay";
-import Input from "../components/Input";
+import { useSelector, useDispatch } from "react-redux";
+import { useIsFocused } from "@react-navigation/native";
+import firebase from "firebase";
+import { getGroups } from "../store/actions/groups";
 const GroupScreen = (props) => {
-  const [refresh, toggleRefresh] = useState(false);
-  const [groupsList, setGroupsList] = useState([
-    {
-      title: "TESt",
-      description: "test",
-      members: [],
-      selected: false,
-    },
-  ]);
-  const [newGroup, setNewGroup] = useState({
-    title: "",
-    description: "",
-    members: [],
-  });
-  const [memberName, setMemberName] = useState("");
-  const [isVisible, setIsVisible] = useState(false);
-  const toggleVisible = () => {
-    setIsVisible(!isVisible);
-  };
-  const onSelect = (data, index) => {
-    // let updatedItem = { ...data };
-    // updatedItem.selected = !updatedItem.selected;
-    // const updatedGroup = groupsList;
-    // updatedGroup[index] = updatedItem;
+  const dispatch = useDispatch();
+  const groupsList = useSelector((state) => state.groups.groups);
+  console.log("Rendering");
+  const { navigation } = props;
+  // swipe down to refresh functionality
+  const [refreshing, setRefreshing] = React.useState(false);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    dispatch(getGroups())
+      .then(() => {
+        setRefreshing(false);
+      })
+      .catch((error) => {
+        setRefreshing(false);
+        console.log(error);
+      });
+  }, []);
 
-    const updatedGroup = groupsList.filter((item) => item.title !== data.title);
+  //
+  useEffect(() => {
+    navigation.setOptions({ headerMode: "none" });
+  }, [navigation]);
 
-    setGroupsList([...updatedGroup]);
+  const onSelect = (data) => {
+    dispatch(deleteGroup(data.id));
   };
+
   const renderListItem = (itemData, index) => {
     return (
       <View
@@ -53,10 +54,13 @@ const GroupScreen = (props) => {
         }>
         <TouchableOpacity
           onLongPress={() => {
-            onSelect(itemData.item, index);
+            onSelect(itemData.item);
           }}
           onPress={() => {
-            props.navigation.navigate("GroupDetails");
+            props.navigation.navigate("GroupTabs", {
+              screen: "Operations",
+              params: { groupId: itemData.item.id },
+            });
           }}>
           <Text style={styles.title}>{itemData.item.title}</Text>
           <Text style={styles.description}>{itemData.item.description}</Text>
@@ -64,22 +68,7 @@ const GroupScreen = (props) => {
       </View>
     );
   };
-  const onAddToList = () => {
-    setGroupsList((list) => [...list, newGroup]);
-    setIsVisible(!isVisible);
-    setNewGroup({ title: "", description: "", members: [] });
-  };
-  const onAddMember = () => {
-    const updatedMembers = [...newGroup.members, memberName];
-    setNewGroup((group) => ({ ...group, members: updatedMembers }));
-    setMemberName("");
-  };
-  const onDeleteMember = (index) => {
-    const updatedMembers = newGroup.members.filter(
-      (value, itemIndex) => itemIndex !== index
-    );
-    setNewGroup((group) => ({ ...group, members: updatedMembers }));
-  };
+
   return (
     <View
       style={groupsList.length === 0 ? styles.emptyListScreen : styles.screen}>
@@ -98,31 +87,37 @@ const GroupScreen = (props) => {
       )}
 
       <View style={{ alignItems: "center" }}>
-        <TouchableOpacity style={styles.addButton} onPress={toggleVisible}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => {
+            navigation.navigate("NewGroup");
+          }}>
           <AntDesign name='plus' color='white' size={27} />
         </TouchableOpacity>
       </View>
-      <Overlay
-        isVisible={isVisible}
-        onBackdropPress={() => {
-          toggleVisible(),
-            setNewGroup({ title: "", description: "", members: [] });
-          setMemberName("");
+      <Button
+        title='Sign out'
+        onPress={() => {
+          firebase.auth().signOut();
         }}
-        fullScreen={true}
-        animated={true}
-        animationType='fade'>
-        <CreateGroupOverlay
-          newGroup={newGroup}
-          setNewGroup={setNewGroup}
-          memberName={memberName}
-          setMemberName={setMemberName}
-          onAddMember={onAddMember}
-          onAddToList={onAddToList}
-          onDeleteMember={onDeleteMember}
-        />
-      </Overlay>
+      />
+      <Button
+        title='Get'
+        onPress={() => {
+          dispatch(getGroups());
+        }}
+      />
     </View>
+
+    // <ScrollView
+    //   contentContainerStyle={
+    //     groupsList.length === 0 ? styles.emptyListScreen : styles.screen
+    //   }
+    //   refreshControl={
+    //     <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+    //   }>
+
+    // </ScrollView>
   );
 };
 const styles = StyleSheet.create({
@@ -167,6 +162,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
   },
+  title: { fontSize: 20 },
 });
 
 export default GroupScreen;

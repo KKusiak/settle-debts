@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect, createContext } from "react";
+import firebase from "firebase";
 
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
@@ -10,20 +11,40 @@ import GroupsScreen from "../screens/GroupsScreen";
 import OperationsScreen from "../screens/Group/OperationsScreen";
 import BalanceScreen from "../screens/Group/BalanceScreen";
 import OperationDetailsScreen from "../screens/Group/OperationDetailsScreen";
+import OperationEditScreen from "../screens/OperationEditScreen";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import Colors from "../constants/Colors";
+import { TouchableOpacity } from "react-native";
+import GroupEditScreen from "../screens/GroupEditScreen";
+import NewOperationScreen from "../screens/NewOperationScreen";
+import CreateGroupScreen from "../screens/CreateGroupScreen";
+
+export const AuthContext = createContext({});
+
 const GroupStack = createStackNavigator();
 const GroupTabs = createBottomTabNavigator();
-const AccountStack = createStackNavigator();
+const AuthStack = createStackNavigator();
 const MainNavigator = createStackNavigator();
 const OperationStack = createStackNavigator();
+
 function OperationStackSetup() {
   return (
-    <OperationStack.Navigator initialRouteName='Operations'>
-      <OperationStack.Screen name='Operations' component={OperationsScreen} />
+    <OperationStack.Navigator>
+      <OperationStack.Screen
+        name='GroupOperations'
+        component={OperationsScreen}
+      />
       <OperationStack.Screen
         name='OperationDetails'
         component={OperationDetailsScreen}
+      />
+      <OperationStack.Screen
+        name='NewOperation'
+        component={NewOperationScreen}
+      />
+      <OperationStack.Screen
+        name='EditOperation'
+        component={OperationEditScreen}
       />
     </OperationStack.Navigator>
   );
@@ -31,7 +52,6 @@ function OperationStackSetup() {
 function GroupTabsSetup() {
   return (
     <GroupTabs.Navigator
-      initialRouteName='Operations'
       tabBarOptions={{
         activeTintColor: Colors.primary,
         inactiveTintColor: Colors.gray,
@@ -60,61 +80,72 @@ function GroupTabsSetup() {
 }
 function GroupStackSetup() {
   return (
-    <GroupStack.Navigator headerMode='none'>
-      <GroupStack.Screen name='Groups' component={GroupsScreen} />
-      <GroupStack.Screen name='GroupDetails' component={GroupTabsSetup} />
+    <GroupStack.Navigator initialRouteName='GroupsList'>
+      <GroupStack.Screen
+        name='GroupsList'
+        component={GroupsScreen}
+        options={{ headerShown: false }}
+      />
+      <GroupStack.Screen
+        name='NewGroup'
+        component={CreateGroupScreen}
+        options={{ title: "Create new group" }}
+      />
+
+      <GroupStack.Screen
+        name='GroupTabs'
+        component={GroupTabsSetup}
+        options={{ headerShown: false }}
+      />
+      <GroupStack.Screen name='GroupEdit' component={GroupEditScreen} />
     </GroupStack.Navigator>
   );
 }
-function AccountStackSetup() {
+function AuthStackSetup() {
   return (
-    <GroupStack.Navigator headerMode='none'>
-      <GroupStack.Screen name='SignIn' component={SignInScreen} />
-      <GroupStack.Screen name='SignUp' component={SignUpScreen} />
-      <GroupStack.Screen
+    <AuthStack.Navigator headerMode='none'>
+      <AuthStack.Screen name='SignIn' component={SignInScreen} />
+      <AuthStack.Screen name='SignUp' component={SignUpScreen} />
+      <AuthStack.Screen
         name='ForgotPassword'
         component={ForgotPasswordScreen}
       />
-    </GroupStack.Navigator>
+    </AuthStack.Navigator>
   );
 }
 
-function MainNavigatorSetup() {
-  return (
+export default function MainNavigatorSetup() {
+  const [initializing, setInitializing] = useState(true);
+  const [user, setUser] = useState(null);
+  function onAuthStateChanged(result) {
+    setUser(result);
+    if (initializing) setInitializing(false);
+  }
+
+  useEffect(() => {
+    const authSubscriber = firebase
+      .auth()
+      .onAuthStateChanged(onAuthStateChanged);
+
+    // unsubscribe on unmount
+    return authSubscriber;
+  }, []);
+
+  if (initializing) {
+    return null;
+  }
+
+  return user ? (
     <NavigationContainer>
-      <MainNavigator.Navigator headerMode='none'>
-        <MainNavigator.Screen
-          name='AccountStack'
-          component={AccountStackSetup}
-        />
-        <MainNavigator.Screen name='Groups' component={GroupStackSetup} />
-      </MainNavigator.Navigator>
+      <AuthContext.Provider value={user}>
+        <MainNavigator.Navigator headerMode='none'>
+          <MainNavigator.Screen name='Groups' component={GroupStackSetup} />
+        </MainNavigator.Navigator>
+      </AuthContext.Provider>
+    </NavigationContainer>
+  ) : (
+    <NavigationContainer>
+      <AuthStackSetup />
     </NavigationContainer>
   );
 }
-
-// const groupBottomNavigator = createBottomTabNavigator({
-//   Operations: OperationsScreen,
-//   Balance: BalanceScreen,
-// });
-// const groupNavigator = createStackNavigator(
-//   {
-//     GroupTabs: groupBottomNavigator,
-//     Groups: GroupsScreen,
-//   },
-//   { headerMode: "none" }
-// );
-// const accountNavigator = createStackNavigator(
-//   {
-//     SignIn: SignInScreen,
-//     SignUp: SignUpScreen,
-//     ForgotPassword: ForgotPasswordScreen,
-//   },
-//   { headerMode: "none" }
-// );
-// const mainNavigator = createStackNavigator({
-//   Account: accountNavigator,
-//   Groups: groupNavigator,
-// });
-MainNavigatorSetup();
-export default MainNavigatorSetup();
