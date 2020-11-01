@@ -6,19 +6,17 @@ import {
   FlatList,
   TouchableOpacity,
   Text,
+  RefreshControl,
 } from "react-native";
 import Operation from "../../components/Operation";
 import { AntDesign } from "@expo/vector-icons";
 import Colors from "../../constants/Colors";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  createOperation,
-  deleteOperation,
-  updateOperation,
-} from "../../store/actions/operations";
-import { compose } from "redux";
+import { deleteOperation, getOperations } from "../../store/actions/operations";
+import { init, localized } from "../../lozalization/localized";
 const OperationsScreen = (props) => {
+  init();
   const { navigation } = props;
 
   const dispatch = useDispatch();
@@ -35,13 +33,25 @@ const OperationsScreen = (props) => {
   );
 
   const operations = useSelector((state) => state.operations.operations).filter(
-    (operation) => operation.groupId === groupId
+    (operation) => operation !== undefined && operation.groupId === groupId
   );
 
   const longPressHandler = (operation) => {
     dispatch(deleteOperation(operation.id));
   };
-
+  // swipe down to refresh functionality
+  const [refreshing, setRefreshing] = React.useState(false);
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    dispatch(getOperations(groupId))
+      .then(() => {
+        setRefreshing(false);
+      })
+      .catch((error) => {
+        setRefreshing(false);
+        console.log(error);
+      });
+  }, []);
   // effect updating header title if necessary
   useEffect(() => {
     props.navigation.setOptions({
@@ -61,24 +71,33 @@ const OperationsScreen = (props) => {
   });
 
   return (
-    <View style={styles.screen}>
-      <View style={{ flex: 1, marginBottom: 20 }}>
-        <FlatList
-          data={operations}
-          keyExtractor={(item) => item.operationId.toString()}
-          renderItem={(itemData) => {
-            return (
-              <Operation
-                operation={itemData.item}
-                group={group}
-                navigation={props.navigation}
-                onLongPress={longPressHandler}
-              />
-            );
-          }}
-        />
-      </View>
-      <View style={{ alignItems: "center" }}>
+    <FlatList
+      data={operations}
+      keyExtractor={(item) => item.id}
+      renderItem={(itemData) => {
+        return (
+          <Operation
+            listKey={itemData.item.id}
+            operation={itemData.item}
+            group={group}
+            navigation={props.navigation}
+            onLongPress={longPressHandler}
+          />
+        );
+      }}
+      ListEmptyComponent={
+        <View
+          style={{
+            alignItems: "center",
+            flexGrow: 1,
+            justifyContent: "center",
+          }}>
+          <Text style={styles.emptyListMessage}>
+            {localized("Add your first operation")}
+          </Text>
+        </View>
+      }
+      ListFooterComponent={
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => {
@@ -86,8 +105,17 @@ const OperationsScreen = (props) => {
           }}>
           <AntDesign name='plus' color='white' size={27} />
         </TouchableOpacity>
-      </View>
-    </View>
+      }
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+      ListFooterComponentStyle={{
+        flexGrow: operations.length === 0 ? 0 : 1,
+        justifyContent: "flex-end",
+        alignItems: "center",
+      }}
+      contentContainerStyle={{ flexGrow: 1, margin: 50 }}
+    />
   );
 };
 const styles = StyleSheet.create({
@@ -99,6 +127,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     justifyContent: "center",
     alignItems: "center",
+  },
+  emptyListMessage: {
+    fontSize: 16,
+    textAlign: "center",
   },
 });
 export default OperationsScreen;

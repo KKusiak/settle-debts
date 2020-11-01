@@ -16,7 +16,10 @@ import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { updateOperation, deleteOperation } from "../store/actions/operations";
 import { updateGroup } from "../store/actions/groups";
 import * as Currencies from "../models/Currency";
+import lodashCloneDeep from "lodash.clonedeep";
+import { init, localized } from "../lozalization/localized";
 const OperationEditScreen = (props) => {
+  init();
   const { operationId, groupId } = props.route.params;
   const { navigation } = props;
   const dispatch = useDispatch();
@@ -26,6 +29,7 @@ const OperationEditScreen = (props) => {
       (obj) => obj.operationId === operationId
     )
   );
+  const [oldOperation, setOldOperation] = useState(lodashCloneDeep(operation));
 
   const [group, setGroup] = useState(
     useSelector((state) => state.groups.groups).find(
@@ -34,14 +38,14 @@ const OperationEditScreen = (props) => {
   );
 
   //
-  const payer = group.members.find((user) => user.id === operation.payer.id);
+  const payer = group.members.find((user) => user.id === operation.payer);
   //
   const [newTitle, setNewTitle] = useState(operation.title);
   const [newValue, setNewValue] = useState(operation.value);
-  const [selectedMember, setSelectedMember] = useState(payer.id);
+  const [selectedMember, setSelectedMember] = useState(payer);
   //
   const toggleRecipent = (userId) => {
-    if (operation.recipents.find((obj) => obj.id === userId) !== undefined) {
+    if (operation.recipents.find((obj) => obj === userId) !== undefined) {
       deleteRecipent(userId);
     } else {
       addRecipent(userId);
@@ -49,84 +53,147 @@ const OperationEditScreen = (props) => {
   };
   const deleteRecipent = (userId) => {
     const updatedRecipents = operation.recipents.filter(
-      (obj) => obj.id !== userId
+      (obj) => obj !== userId
     );
+
     setOperation((currState) => {
-      return { ...currState, recipents: [...updatedRecipents] };
+      const updatedOperation = {
+        ...currState,
+        recipents: [...updatedRecipents],
+      };
+
+      return updatedOperation;
     });
   };
   const addRecipent = (userId) => {
     const updatedRecipents = operation.recipents;
-    updatedRecipents.push({ id: userId });
-    console.log(updatedRecipents);
+    updatedRecipents.push(userId);
+
     setOperation((currState) => {
-      return { ...currState, recipents: [...updatedRecipents] };
+      const updatedOperation = {
+        ...currState,
+        recipents: [...updatedRecipents],
+      };
+
+      return updatedOperation;
     });
   };
   //
   const changePayer = (itemValue) => {
     setSelectedMember(itemValue);
     const updatedOperation = { ...operation };
-    updatedOperation.payer.id = itemValue;
+    updatedOperation.payer = itemValue;
     if (
       updatedOperation.recipents.find(
-        (recipent) => recipent.id === updatedOperation.payer.id
+        (recipent) => recipent === updatedOperation.payer
       ) === undefined
     ) {
-      updatedOperation.recipents.push({ id: updatedOperation.payer.id });
+      updatedOperation.recipents.push(updatedOperation.payer);
     }
-    setOperation({ ...updatedOperation });
+    setOperation((currState) => {
+      return updatedOperation;
+    });
   };
   //
   const deleteOperationHandler = () => {
-    Alert.alert("Are you sure?", "This operation is permament", [
-      {
-        text: "No",
-      },
-      {
-        text: "Yes",
-        onPress: () => {
-          const moneyBorrowedPerRecipent = operation.value.divide(
-            operation.recipents.length
-          );
-          const updatedGroup = { ...group };
-          const indexPayer = updatedGroup.members.findIndex(
-            (member) => member.id === operation.payer.id
-          );
-
-          updatedGroup.members[indexPayer].balance = updatedGroup.members[
-            indexPayer
-          ].balance.subtract(operation.value);
-          operation.recipents.forEach((recipent) => {
-            const index = updatedGroup.members.findIndex(
-              (user) => user.id === recipent.id
+    Alert.alert(
+      localized("Are you sure?"),
+      localized("This operation is permament"),
+      [
+        {
+          text: localized("No"),
+        },
+        {
+          text: localized("Yes"),
+          onPress: () => {
+            const moneyBorrowedPerRecipent = operation.value.divide(
+              operation.recipents.length
+            );
+            const updatedGroup = { ...group };
+            const indexPayer = updatedGroup.members.findIndex(
+              (member) => member.id === operation.payer
             );
 
-            updatedGroup.members[index].balance = updatedGroup.members[
-              index
-            ].balance.add(moneyBorrowedPerRecipent);
-          });
+            updatedGroup.members[indexPayer].balance = updatedGroup.members[
+              indexPayer
+            ].balance.subtract(operation.value);
+            operation.recipents.forEach((recipent) => {
+              const index = updatedGroup.members.findIndex(
+                (user) => user.id === recipent
+              );
 
-          navigation.navigate("GroupOperations");
-          dispatch(deleteOperation(operation.operationId));
-          dispatch(updateGroup(updatedGroup, group.id));
+              updatedGroup.members[index].balance = updatedGroup.members[
+                index
+              ].balance.add(moneyBorrowedPerRecipent);
+            });
+
+            navigation.navigate("GroupOperations");
+            dispatch(deleteOperation(operation, updatedGroup));
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
+  const updateBalances = (oldOperation, updatedOperation) => {
+    const clonedGroup = lodashCloneDeep(group);
 
+    const oldValPerRecipent = oldOperation.value.divide(
+      oldOperation.recipents.length
+    );
+    let payer = clonedGroup.members.find(
+      (member) => member.id === oldOperation.payer
+    );
+
+    payer.balance = payer.balance.subtract(oldOperation.value);
+
+    oldOperation.recipents.forEach((recipent) => {
+      const member =
+        clonedGroup.members[
+          clonedGroup.members.findIndex((member) => member.id === recipent)
+        ];
+      member.balance = member.balance.add(oldValPerRecipent);
+    });
+    const newValPerRecipent = updatedOperation.value.divide(
+      updatedOperation.recipents.length
+    );
+    payer = clonedGroup.members.find(
+      (member) => member.id === updatedOperation.payer
+    );
+    payer.balance = payer.balance.add(updatedOperation.value);
+    updatedOperation.recipents.forEach((recipent) => {
+      const member =
+        clonedGroup.members[
+          clonedGroup.members.findIndex((member) => member.id === recipent)
+        ];
+      member.balance = member.balance.subtract(newValPerRecipent);
+    });
+    dispatch(updateGroup(clonedGroup, clonedGroup.id));
+  };
   // dispatch saving operation to store
   useEffect(() => {
     props.navigation.setOptions({
       title: operation.title,
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => {
+            updateBalances(oldOperation, operation);
+            dispatch(updateOperation({ ...operation }, group));
+            navigation.navigate("GroupOperations");
+          }}>
+          <MaterialIcons name='save' color='black' size={30} />
+        </TouchableOpacity>
+      ),
+      headerRightContainerStyle: { marginHorizontal: 20 },
     });
-    dispatch(updateOperation(operationId, { ...operation }));
-  }, [operation, navigation]);
-
+  }, [navigation, operation, oldOperation]);
+  useEffect(() => {
+    const newOperation = { ...operation, value: newValue };
+    setOperation(newOperation);
+  }, [newValue]);
   const renderMember = (memberData) => {
     const member = memberData.item;
     const isRecipent =
-      operation.recipents.find((recipent) => recipent.id === member.id) !==
+      operation.recipents.find((recipent) => recipent === member.id) !==
       undefined
         ? true
         : false;
@@ -136,9 +203,9 @@ const OperationEditScreen = (props) => {
           <CheckBox
             tintColors={{
               true:
-                member.id === operation.payer.id ? Colors.gray : Colors.primary,
+                member.id === operation.payer ? Colors.gray : Colors.primary,
             }}
-            disabled={member.id === operation.payer.id ? true : false}
+            disabled={member.id === operation.payer ? true : false}
             value={isRecipent}
             onValueChange={(newValue) => {
               toggleRecipent(member.id);
@@ -161,7 +228,7 @@ const OperationEditScreen = (props) => {
           leftIcon={
             <MaterialIcons name='title' size={30} color={Colors.gray} />
           }
-          placeholder='Title'
+          placeholder={localized("Title")}
           inputValue={operation.title}
           onChangeText={(newText) => {
             const updatedOperation = { ...operation, title: newText };
@@ -172,20 +239,16 @@ const OperationEditScreen = (props) => {
           leftIcon={
             <MaterialIcons name='attach-money' size={30} color={Colors.gray} />
           }
-          placeholder='Amount'
+          placeholder={localized("Amount")}
           keyboardType='numeric'
-          inputValue={operation.value.value.toString()}
+          inputValue={newValue.value.toString()}
           onChangeText={(newText) => {
             if (newText === "") newText = "0";
-            const updatedOperation = {
-              ...operation,
-              value: Currencies.PLN(newText),
-            };
-            setOperation(updatedOperation);
+            setNewValue(Currencies.PLN(newText));
           }}
         />
         <View style={styles.pickerContainer}>
-          <Text>Paid by:</Text>
+          <Text>{localized("Paid by")}:</Text>
           <Picker
             selectedValue={selectedMember}
             style={styles.picker}
@@ -200,7 +263,7 @@ const OperationEditScreen = (props) => {
           </Picker>
         </View>
 
-        <Text>Recipents:</Text>
+        <Text>{localized("Recipents")}:</Text>
         <FlatList
           data={group.members}
           renderItem={(itemData) => renderMember(itemData)}
@@ -211,7 +274,9 @@ const OperationEditScreen = (props) => {
         <TouchableOpacity
           style={styles.deleteButton}
           onPress={deleteOperationHandler}>
-          <Text style={styles.deleteButtonText}>Delete this operation</Text>
+          <Text style={styles.deleteButtonText}>
+            {localized("Delete this operation")}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

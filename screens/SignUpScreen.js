@@ -103,8 +103,18 @@ const SignUpScreen = (props) => {
           onPress={() => {
             firebase
               .auth()
-              .createUserWithEmailAndPassword(enteredEmail, enteredPassword)
-              .then(() => {
+              .createUserWithEmailAndPassword(
+                enteredEmail.toLowerCase(),
+                enteredPassword
+              )
+              .then((UserCredential) => {
+                firebase
+                  .firestore()
+                  .doc(`RegisteredUsers/${UserCredential.user.uid}`)
+                  .set({
+                    name: enteredName,
+                    email: enteredEmail.toLowerCase(),
+                  });
                 firebase
                   .auth()
                   .currentUser.updateProfile({ displayName: enteredName })

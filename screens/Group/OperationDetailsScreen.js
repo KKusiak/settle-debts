@@ -10,7 +10,9 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useSelector, useDispatch } from "react-redux";
 import Colors from "../../constants/Colors";
 import { useIsFocused, useFocusEffect } from "@react-navigation/native";
+import { init, localized } from "../../lozalization/localized";
 const OperationDetailsScreen = (props) => {
+  init();
   const { navigation } = props;
   const { operationId, groupId } = props.route.params;
   const isFocused = useIsFocused();
@@ -22,9 +24,9 @@ const OperationDetailsScreen = (props) => {
     (obj) => obj.id === groupId
   );
 
-  const payer = group.members.find((user) => user.id === operation.payer.id);
+  const payer = group.members.find((user) => user.id === operation.payer);
   const recipents = operation.recipents.map((recipent) =>
-    group.members.find((user) => user.id === recipent.id)
+    group.members.find((user) => user.id === recipent)
   );
 
   useLayoutEffect(() => {
@@ -53,7 +55,8 @@ const OperationDetailsScreen = (props) => {
       <Text style={styles.title}>{operation.value.format()} </Text>
 
       <Text style={styles.payerParagraph}>
-        Paid by <Text style={styles.payer}>{payer.name}</Text> for
+        {localized("Paid by")} <Text style={styles.payer}>{payer.name}</Text>{" "}
+        {localized("for")}
       </Text>
       <FlatList
         style={styles.box}

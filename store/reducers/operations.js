@@ -4,6 +4,7 @@ import {
   DELETE_MEMBER,
   DELETE_OPERATION,
   UPDATE_OPERATION,
+  SET_OPERATIONS,
 } from "../actions/operations";
 import * as Currencies from "../../models/Currency";
 import lodashCloneDeep from "lodash.clonedeep";
@@ -13,6 +14,21 @@ const initialState = {
 
 export default (state = initialState, action) => {
   switch (action.type) {
+    case SET_OPERATIONS: {
+      // const updatedOperations = state.operations;
+      // action.operations.forEach((operation) => {
+      //   const index = updatedOperations.findIndex(
+      //     (obj) => obj.id === operation.id
+      //   );
+      //   if (index !== -1) {
+      //     updatedOperations[index] = operation;
+      //   } else {
+      //     updatedOperations.push(operation);
+      //   }
+      const updated = [...action.operations];
+      return { ...state, operations: updated };
+      // });
+    }
     case CREATE_OPERATION: {
       const operations = state.operations;
       operations.push(action.operation);

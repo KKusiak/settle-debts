@@ -14,10 +14,10 @@ import Input from "../components/Input";
 import Colors from "../constants/Colors";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { createOperation } from "../store/actions/operations";
-import { updateBalance, updateGroup } from "../store/actions/groups";
-import Operation from "../models/Operation";
+import { init, localized } from "../lozalization/localized";
 import * as Currencies from "../models/Currency";
 const NewOperationScreen = (props) => {
+  init();
   const dispatch = useDispatch();
   const { groupId } = props.route.params;
   const { navigation } = props;
@@ -34,8 +34,8 @@ const NewOperationScreen = (props) => {
   const [operation, setOperation] = useState({
     title: "",
     value: Currencies.PLN(1),
-    payer: { id: groupMembers[0].id },
-    recipents: [{ id: groupMembers[0].id }],
+    payer: groupMembers[0].id,
+    recipents: [groupMembers[0].id],
   });
   const [selectedMember, setSelectedMember] = useState({
     id: operation.payer.id,
@@ -51,19 +51,19 @@ const NewOperationScreen = (props) => {
   const changePayer = (itemValue) => {
     setSelectedMember(itemValue);
     const updatedOperation = { ...operation };
-    updatedOperation.payer.id = itemValue;
+    updatedOperation.payer = itemValue;
     if (
       updatedOperation.recipents.find(
-        (recipent) => recipent.id === updatedOperation.payer.id
+        (recipent) => recipent === updatedOperation.payer
       ) === undefined
     ) {
-      updatedOperation.recipents.push({ id: updatedOperation.payer.id });
+      updatedOperation.recipents.push(updatedOperation.payer);
     }
     setOperation({ ...updatedOperation });
   };
   const deleteRecipent = (userId) => {
     const updatedRecipents = operation.recipents.filter(
-      (obj) => obj.id !== userId
+      (obj) => obj !== userId
     );
     setOperation((currState) => {
       return { ...currState, recipents: [...updatedRecipents] };
@@ -72,13 +72,13 @@ const NewOperationScreen = (props) => {
   const addRecipent = (userId) => {
     const updatedRecipents = operation.recipents;
 
-    updatedRecipents.push({ id: userId });
+    updatedRecipents.push(userId);
     setOperation((currState) => {
       return { ...currState, recipents: [...updatedRecipents] };
     });
   };
   const isRecipent = (id) => {
-    return !!operation.recipents.find((obj) => obj.id === id);
+    return !!operation.recipents.find((obj) => obj === id);
   };
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -93,54 +93,57 @@ const NewOperationScreen = (props) => {
 
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: "Create new operation",
+      title: localized("Create new operation"),
     });
   }, [navigation]);
   const createOperationHandler = () => {
     if (operation.title.length === 0) {
-      Alert.alert("Invalid title", "Title can't be empty");
+      Alert.alert(
+        localized("Invalid title"),
+        localized("Title can't be empty")
+      );
       return -1;
     }
     if (operation.value.value === 0) {
-      Alert.alert("Invalid value", "Value must be greater than 0");
+      Alert.alert(
+        localized("Invalid value"),
+        localized("Value must be greater than 0")
+      );
       return -1;
     }
     const readyOperation = {
       ...operation,
       groupId: group.id,
-      operationId: Math.floor(Math.random() * 100000 + 1),
     };
     /////////////////////////
-    const recipentsList = readyOperation.recipents.map((recipent) => {
-      return {
-        id: recipent.id,
-        value: operation.value.divide(operation.recipents.length),
-      };
-    });
+    const recipentsList = readyOperation.recipents.map((recipent) => recipent);
     //////////////////////
 
     const updatedMembers = group.members.map((member) => {
-      const recipent = recipentsList.find((obj) => obj.id === member.id);
+      const recipent = recipentsList.find((obj) => obj === member.id);
 
-      if (member.id === operation.payer.id) {
+      if (member.id === operation.payer) {
         member.balance = member.balance.add(operation.value);
       }
 
       if (recipent !== undefined) {
-        member.balance = member.balance.subtract(recipent.value);
+        member.balance = member.balance.subtract(
+          operation.value.divide(operation.recipents.length)
+        );
       }
 
       return { ...member };
     });
 
+    dispatch(
+      createOperation(readyOperation, { ...group, members: updatedMembers })
+    );
     navigation.navigate("GroupOperations");
-    dispatch(createOperation(readyOperation));
-    dispatch(updateGroup({ ...group, members: updatedMembers }, group.id));
   };
   const renderMember = (memberData) => {
     const member = memberData.item;
     const isRecipent =
-      operation.recipents.find((recipent) => recipent.id === member.id) !==
+      operation.recipents.find((recipent) => recipent === member.id) !==
       undefined
         ? true
         : false;
@@ -151,9 +154,9 @@ const NewOperationScreen = (props) => {
           <CheckBox
             tintColors={{
               true:
-                member.id === operation.payer.id ? Colors.gray : Colors.primary,
+                member.id === operation.payer ? Colors.gray : Colors.primary,
             }}
-            disabled={member.id === operation.payer.id ? true : false}
+            disabled={member.id === operation.payer ? true : false}
             value={isRecipent}
             onValueChange={(newValue) => {
               toggleRecipent(member.id);
@@ -176,7 +179,7 @@ const NewOperationScreen = (props) => {
           leftIcon={
             <MaterialIcons name='title' size={30} color={Colors.gray} />
           }
-          placeholder='Title'
+          placeholder={localized("Title")}
           inputValue={operation.title}
           onChangeText={(newText) => {
             const updatedOperation = { ...operation, title: newText };
@@ -187,7 +190,7 @@ const NewOperationScreen = (props) => {
           leftIcon={
             <MaterialIcons name='attach-money' size={30} color={Colors.gray} />
           }
-          placeholder='Amount'
+          placeholder={localized("Amount")}
           keyboardType='numeric'
           inputValue={tempValue.value.toString()}
           onChangeText={(newText) => {
@@ -195,7 +198,7 @@ const NewOperationScreen = (props) => {
           }}
         />
         <View style={styles.pickerContainer}>
-          <Text>Paid by:</Text>
+          <Text>{localized("Paid by")}:</Text>
           <Picker
             selectedValue={selectedMember}
             style={styles.picker}
@@ -210,18 +213,20 @@ const NewOperationScreen = (props) => {
           </Picker>
         </View>
 
-        <Text>Recipents:</Text>
+        <Text>{localized("Recipents")}:</Text>
         <FlatList
           data={groupMembers}
           renderItem={(itemData) => renderMember(itemData)}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={(item) => item.id}
         />
       </View>
       <View>
         <TouchableOpacity
           style={styles.createOperationButton}
           onPress={createOperationHandler}>
-          <Text style={styles.createOperationText}>Create operation</Text>
+          <Text style={styles.createOperationText}>
+            {localized("Create operation")}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, createContext } from "react";
 import firebase from "firebase";
-
+import { localized, init } from "../lozalization/localized";
 import { createStackNavigator } from "@react-navigation/stack";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -18,7 +18,8 @@ import { TouchableOpacity } from "react-native";
 import GroupEditScreen from "../screens/GroupEditScreen";
 import NewOperationScreen from "../screens/NewOperationScreen";
 import CreateGroupScreen from "../screens/CreateGroupScreen";
-
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import SettingsScreen from "../screens/SettingsScreen";
 export const AuthContext = createContext({});
 
 const GroupStack = createStackNavigator();
@@ -26,7 +27,7 @@ const GroupTabs = createBottomTabNavigator();
 const AuthStack = createStackNavigator();
 const MainNavigator = createStackNavigator();
 const OperationStack = createStackNavigator();
-
+const Drawer = createDrawerNavigator();
 function OperationStackSetup() {
   return (
     <OperationStack.Navigator>
@@ -50,6 +51,7 @@ function OperationStackSetup() {
   );
 }
 function GroupTabsSetup() {
+  init();
   return (
     <GroupTabs.Navigator
       tabBarOptions={{
@@ -61,6 +63,7 @@ function GroupTabsSetup() {
         name='Operations'
         component={OperationStackSetup}
         options={{
+          title: localized("Operations"),
           tabBarIcon: ({ color }) => (
             <MaterialIcons name='receipt' size={24} color={color} />
           ),
@@ -70,6 +73,7 @@ function GroupTabsSetup() {
         name='Balance'
         component={BalanceScreen}
         options={{
+          title: localized("Balance"),
           tabBarIcon: ({ color }) => (
             <FontAwesome name='dollar' size={24} color={color} />
           ),
@@ -79,6 +83,7 @@ function GroupTabsSetup() {
   );
 }
 function GroupStackSetup() {
+  init();
   return (
     <GroupStack.Navigator initialRouteName='GroupsList'>
       <GroupStack.Screen
@@ -89,7 +94,7 @@ function GroupStackSetup() {
       <GroupStack.Screen
         name='NewGroup'
         component={CreateGroupScreen}
-        options={{ title: "Create new group" }}
+        options={{ title: localized("Create new group") }}
       />
 
       <GroupStack.Screen
@@ -113,8 +118,15 @@ function AuthStackSetup() {
     </AuthStack.Navigator>
   );
 }
-
+const MainStackSetup = () => {
+  return (
+    <MainNavigator.Navigator headerMode='none'>
+      <MainNavigator.Screen name='Groups' component={GroupStackSetup} />
+    </MainNavigator.Navigator>
+  );
+};
 export default function MainNavigatorSetup() {
+  init();
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState(null);
   function onAuthStateChanged(result) {
@@ -138,9 +150,20 @@ export default function MainNavigatorSetup() {
   return user ? (
     <NavigationContainer>
       <AuthContext.Provider value={user}>
-        <MainNavigator.Navigator headerMode='none'>
-          <MainNavigator.Screen name='Groups' component={GroupStackSetup} />
-        </MainNavigator.Navigator>
+        <Drawer.Navigator
+          initialRouteName='Home'
+          drawerContentOptions={{ activeTintColor: Colors.primary }}>
+          <Drawer.Screen
+            name='Home'
+            component={MainStackSetup}
+            options={{ title: localized("Home") }}
+          />
+          <Drawer.Screen
+            name='Settings'
+            component={SettingsScreen}
+            options={{ title: localized("Settings") }}
+          />
+        </Drawer.Navigator>
       </AuthContext.Provider>
     </NavigationContainer>
   ) : (

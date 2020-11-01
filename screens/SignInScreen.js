@@ -81,7 +81,7 @@ const SignInScreen = (props) => {
               .auth()
               .signInWithEmailAndPassword(enteredEmail, enteredPassword)
               .then(() => {
-                //dispatch(getGroups());
+                dispatch(getGroups());
               })
               .catch((error) => {
                 const errorMessage = error.message;

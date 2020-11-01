@@ -13,13 +13,13 @@ import Input from "../components/Input";
 import Colors from "../constants/Colors";
 import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
 import { useSelector, useDispatch, useStore } from "react-redux";
-import { deleteGroup, updateGroup } from "../store/actions/groups";
-import {
-  deleteMember,
-  deleteGroupOperations,
-} from "../store/actions/operations";
-
+import { deleteGroup, updateGroup, addMember } from "../store/actions/groups";
+import { deleteGroupOperations } from "../store/actions/operations";
+import firebase from "firebase";
+import * as Currencies from "../models/Currency";
+import { localized, init } from "../lozalization/localized";
 const GroupEditScreen = (props) => {
+  init();
   const { navigation } = props;
   const { groupId } = props.route.params;
 
@@ -35,29 +35,46 @@ const GroupEditScreen = (props) => {
   useEffect(() => {
     navigation.setOptions({
       title: newGroup.title,
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => {
+            navigation.navigate("GroupsList");
+            dispatch(updateGroup({ ...newGroup }, newGroup.id));
+          }}>
+          <MaterialIcons name='save' color='black' size={30} />
+        </TouchableOpacity>
+      ),
+      headerRightContainerStyle: { marginHorizontal: 20 },
     });
-  }, [isFocused]);
+  }, [navigation, newGroup]);
 
   // effect updating store
-  useEffect(() => {
-    const time = setTimeout(() => {
-      dispatch(updateGroup({ ...newGroup }, newGroup.id));
-      navigation.setOptions({
-        title: newGroup.title,
-      });
-    }, 1000);
-    return () => clearTimeout(time);
-  }, [navigation, newGroup]);
-  //
-  const deleteHandler = (index) => {
+
+  const deleteHandler = (index, memberId) => {
     if (newGroup.members.length > 2) {
-      dispatch(deleteMember(newGroup.id, newGroup.members[index].id));
-      newGroup.members.splice(index, 1);
-      setNewGroup({ ...newGroup });
+      firebase
+        .firestore()
+        .collection(`Groups/${group.id}/operations`)
+        .where("recipents", "array-contains", memberId)
+        .get()
+        .then((colRef) => {
+          if (colRef.docs.length === 0) {
+            newGroup.members.splice(index, 1);
+            newGroup.membersIds = newGroup.membersIds.filter(
+              (member) => member !== memberId
+            );
+            setNewGroup({ ...newGroup });
+          } else {
+            Alert.alert(
+              localized("Can't remove member"),
+              localized("The member participates in at least one transaction")
+            );
+          }
+        });
     } else {
       Alert.alert(
-        "Can't remove member",
-        "Group must have at least two members"
+        localized("Can't remove member"),
+        localized("Group must have at least two members")
       );
     }
   };
@@ -65,34 +82,41 @@ const GroupEditScreen = (props) => {
   const addMemberHandler = () => {
     if (newMemberName.length) {
       const newMember = {
-        id: Math.floor(Math.random() * 10000),
+        email: "",
         name: newMemberName,
-        balance: 0,
+        balance: Currencies.PLN(0),
       };
-      const updatedGroup = { ...newGroup };
-      updatedGroup.members.push(newMember);
-      setNewGroup({ ...updatedGroup });
+      dispatch(addMember(newMember)).then((member) => {
+        const updatedGroup = { ...newGroup };
+        updatedGroup.members.push(member);
+        updatedGroup.membersIds.push(member.id);
+        setNewGroup({ ...updatedGroup });
+      });
     } else {
       Alert.alert(
-        "Can't add member",
-        "Member's name must be at least one character long"
+        localized("Can't add member"),
+        localized("Member's name must be at least one character long")
       );
     }
   };
   const onDeleteGroup = () => {
-    Alert.alert("Are you sure?", "This operation is permament", [
-      {
-        text: "No",
-      },
-      {
-        text: "Yes",
-        onPress: () => {
-          navigation.navigate("GroupsList");
-          dispatch(deleteGroupOperations(group.id));
-          dispatch(deleteGroup(group.id));
+    Alert.alert(
+      localized("Are you sure?"),
+      localized("This operation is permament"),
+      [
+        {
+          text: localized("No"),
         },
-      },
-    ]);
+        {
+          text: localized("Yes"),
+          onPress: () => {
+            navigation.navigate("GroupsList");
+            dispatch(deleteGroupOperations(group.id));
+            dispatch(deleteGroup(group.id, group));
+          },
+        },
+      ]
+    );
   };
   const renderMemberItem = (itemData) => {
     return (
@@ -101,7 +125,7 @@ const GroupEditScreen = (props) => {
         <TouchableOpacity
           style={styles.memberItemDeleteButton}
           onPress={() => {
-            deleteHandler(itemData.index);
+            deleteHandler(itemData.index, itemData.item.id);
           }}>
           <MaterialIcons name='delete' size={25} color='#ff3d00' />
         </TouchableOpacity>
@@ -115,7 +139,7 @@ const GroupEditScreen = (props) => {
           leftIcon={
             <MaterialIcons name='title' size={30} color={Colors.gray} />
           }
-          placeholder='Title'
+          placeholder={localized("Title")}
           inputValue={newGroup.title}
           onChangeText={(newTitle) => {
             newGroup.title = newTitle;
@@ -126,14 +150,14 @@ const GroupEditScreen = (props) => {
           leftIcon={
             <MaterialIcons name='description' size={30} color={Colors.gray} />
           }
-          placeholder='Description'
+          placeholder={localized("Description")}
           inputValue={newGroup.description}
           onChangeText={(newDescription) => {
             newGroup.description = newDescription;
             setNewGroup({ ...newGroup });
           }}
         />
-        <Text>Members</Text>
+        <Text>{localized("Members")}</Text>
         <FlatList
           data={newGroup.members}
           keyExtractor={(item) => item.id.toString()}
@@ -142,7 +166,7 @@ const GroupEditScreen = (props) => {
           persistentScrollbar={true}
         />
         <Input
-          placeholder='Name'
+          placeholder={localized("Name")}
           leftIcon={
             <MaterialIcons
               name='person-outline'
@@ -163,7 +187,7 @@ const GroupEditScreen = (props) => {
             addMemberHandler();
           }}
           style={styles.addMemberButton}>
-          <Text>Add member</Text>
+          <Text>{localized("Add member")}</Text>
         </TouchableOpacity>
       </View>
 
@@ -172,7 +196,9 @@ const GroupEditScreen = (props) => {
           onDeleteGroup();
         }}
         style={styles.deleteButton}>
-        <Text style={styles.deleteButtonText}>Delete this group</Text>
+        <Text style={styles.deleteButtonText}>
+          {localized("Delete this group")}
+        </Text>
       </TouchableOpacity>
     </View>
   );

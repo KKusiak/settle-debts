@@ -14,8 +14,9 @@ export const settleBills = ([...members]) => {
     const lastItem = sortedMembers[sortedMembers.length - 1]; // B
     if (Math.abs(lastItem.balance.value) >= firstItem.balance.value) {
       // całość kwoty danej przez A mieści się w długu B
+
       TMP.push({
-        id: TMP.length,
+        id: Math.floor(Math.random() * (1000 - 1)) + 1,
         payer: lastItem.name,
         value: Currencies.PLN(Math.abs(firstItem.balance.value)),
         recipent: firstItem.name,
@@ -24,8 +25,9 @@ export const settleBills = ([...members]) => {
       firstItem.balance = Currencies.PLN(0);
     } else if (Math.abs(lastItem.balance) < firstItem.balance) {
       // kwota dana przez A nie mieści się w długu B w całości
+
       TMP.push({
-        id: TMP.length,
+        id: Math.floor(Math.random() * (1000 - 1)) + 1,
         payer: lastItem.name,
         value: Currencies.PLN(Math.abs(lastItem.balance.value)),
         recipent: firstItem.name,

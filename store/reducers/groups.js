@@ -7,6 +7,7 @@ import {
   DELETE_MEMBER,
   UPDATE_BALANCE,
   SET_GROUPS,
+  ADD_MEMBER,
 } from "../actions/groups";
 import * as Currencies from "../../models/Currency";
 import { render } from "react-dom";
@@ -17,17 +18,14 @@ const initialState = {
 export default (state = initialState, action) => {
   switch (action.type) {
     case SET_GROUPS: {
-      return { ...state, groups: [...action.groups] };
+      const updated = [...action.groups];
+      return { ...state, groups: updated };
     }
-    case CREATE_GROUP:
-      const { group } = action;
-      if (group.title.length !== 0 && group.title !== undefined) {
-        const updatedGroupsList = [...state.groups];
-        updatedGroupsList.push(group);
-        return { ...state, groups: updatedGroupsList };
-      } else {
-        return state;
-      }
+    case CREATE_GROUP: {
+      const groups = state.groups;
+      groups.push(action.group);
+      return { ...state, groups: groups };
+    }
     case UPDATE_GROUP: {
       const groups = state.groups;
       const index = groups.findIndex((obj) => {

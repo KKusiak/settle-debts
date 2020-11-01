@@ -8,11 +8,9 @@ import { settleBills } from "../../models/settleBill";
 import { localized, init } from "../../lozalization/localized";
 import * as firebase from "firebase";
 const BalanceScreen = (props) => {
-  console.ignoredYellowBox = ["Setting a timer"];
   init();
-  let [TMP, setTMP] = useState([]);
+  const [TMP, setTMP] = useState([]);
   const isFocused = useIsFocused();
-
   const tabNavigatorState = props.navigation.dangerouslyGetState();
   const groupId = tabNavigatorState.routes.find(
     (route) => route.name === "Operations"
@@ -20,6 +18,7 @@ const BalanceScreen = (props) => {
   const group = useSelector((state) => state.groups.groups).find(
     (group) => group.id === groupId
   );
+
   useEffect(() => {
     setTMP(settleBills(group.members));
   }, [group]);
@@ -29,9 +28,9 @@ const BalanceScreen = (props) => {
     return (
       <View style={styles.refundContainer}>
         <Text>
-          <Text style={{ fontWeight: "bold" }}>{item.payer}</Text>
-          {localized("shouldPay")}{" "}
-          <Text style={{ fontWeight: "bold" }}> {item.recipent}</Text>
+          <Text style={{ fontWeight: "bold" }}>{item.payer} </Text>
+          {localized("shouldPay")}
+          <Text style={{ fontWeight: "bold" }}> {item.recipent} </Text>
           <Text style={{ fontWeight: "bold", color: Colors.primary }}>
             {item.value.format()}
           </Text>
@@ -73,7 +72,9 @@ const BalanceScreen = (props) => {
       <Text style={styles.refunds}>{localized("Refunds")}</Text>
       <FlatList
         data={TMP}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => {
+          return item.id.toString();
+        }}
         renderItem={(itemData) => renderBills(itemData)}
       />
     </View>
