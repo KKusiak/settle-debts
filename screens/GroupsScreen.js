@@ -47,6 +47,9 @@ const GroupScreen = (props) => {
 
   //
   useEffect(() => {
+    onRefresh();
+  }, []);
+  useEffect(() => {
     navigation.setOptions({ headerMode: "none" });
   }, [navigation]);
 

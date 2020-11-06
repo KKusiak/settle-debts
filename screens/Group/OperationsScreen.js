@@ -52,6 +52,9 @@ const OperationsScreen = (props) => {
         console.log(error);
       });
   }, []);
+  useEffect(() => {
+    onRefresh();
+  }, []);
   // effect updating header title if necessary
   useEffect(() => {
     props.navigation.setOptions({

@@ -55,5 +55,9 @@
   "You don't have a group, create your first with the button below": "Nie posiadasz żadnej grupy, utwórz pierwszą z pomocą przycisku poniżej",
   "Add your first operation": "Dodaj pierwszą operacje",
   "Operations": "Operacje",
-  "Balance": "Rozrachunki"
+  "Balance": "Rozrachunki",
+  "Personal expenses": "Wydatki osobiste",
+  "Group expenses": "Wydatki grupowe",
+  "Title (optional)": "Tytuł (opcjonalny)",
+  "Add expenditure": "Dodaj wydatek"
 }

@@ -53,5 +53,9 @@
   "You don't have a group, create your first with the button below": "You don't have a group, create your first with the button below",
   "Add your first operation": "Add your first operation",
   "Operations": "Operations",
-  "Balance": "Balance"
+  "Balance": "Balance",
+  "Personal expenses": "Personal expenses",
+  "Group expenses": "Group expenses",
+  "Title (optional)": "Title (optional)",
+  "Add expenditure": "Add expenditure"
 }

@@ -6,7 +6,7 @@ import accountReducer from "./store/reducers/account";
 import groupsReducer from "./store/reducers/groups";
 import operationsReducer from "./store/reducers/operations";
 import usersReducer from "./store/reducers/user";
-
+import expendituresReducer from "./store/reducers/expenditures";
 import { combineReducers, createStore, applyMiddleware } from "redux";
 import thunk from "redux-thunk";
 import firebase from "firebase/app";
@@ -31,6 +31,7 @@ export default function App() {
     groups: groupsReducer,
     operations: operationsReducer,
     users: usersReducer,
+    expenditures: expendituresReducer,
   });
   const store = createStore(rootReducer, applyMiddleware(thunk));
   return (

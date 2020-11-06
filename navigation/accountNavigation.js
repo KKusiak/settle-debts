@@ -19,7 +19,9 @@ import GroupEditScreen from "../screens/GroupEditScreen";
 import NewOperationScreen from "../screens/NewOperationScreen";
 import CreateGroupScreen from "../screens/CreateGroupScreen";
 import { createDrawerNavigator } from "@react-navigation/drawer";
+import HomeScreen from "../screens/Track Expenses/HomeScreen";
 import SettingsScreen from "../screens/SettingsScreen";
+import NewExpenditure from "../screens/Track Expenses/NewExpenditure";
 export const AuthContext = createContext({});
 
 const GroupStack = createStackNavigator();
@@ -28,6 +30,7 @@ const AuthStack = createStackNavigator();
 const MainNavigator = createStackNavigator();
 const OperationStack = createStackNavigator();
 const Drawer = createDrawerNavigator();
+const TrackExpensesStack = createStackNavigator();
 function OperationStackSetup() {
   return (
     <OperationStack.Navigator>
@@ -125,6 +128,21 @@ const MainStackSetup = () => {
     </MainNavigator.Navigator>
   );
 };
+const TrackExpensesStackSetup = () => {
+  return (
+    <TrackExpensesStack.Navigator>
+      <TrackExpensesStack.Screen
+        name='HomeScreen'
+        component={HomeScreen}
+        options={{ headerShown: false }}
+      />
+      <TrackExpensesStack.Screen
+        name='NewExpenditure'
+        component={NewExpenditure}
+      />
+    </TrackExpensesStack.Navigator>
+  );
+};
 export default function MainNavigatorSetup() {
   init();
   const [initializing, setInitializing] = useState(true);
@@ -156,7 +174,14 @@ export default function MainNavigatorSetup() {
           <Drawer.Screen
             name='Home'
             component={MainStackSetup}
-            options={{ title: localized("Home") }}
+            options={{ title: localized("Group expenses") }}
+          />
+          <Drawer.Screen
+            name='TrackExpenses'
+            component={TrackExpensesStackSetup}
+            options={{
+              title: localized("Personal expenses"),
+            }}
           />
           <Drawer.Screen
             name='Settings'
